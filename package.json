@@ -1,0 +1,21 @@
+{
+  "name": "antigravity-context-patcher",
+  "version": "1.0.0",
+  "description": "Version-independent context-control scanner and patch planner for Antigravity IDE",
+  "main": "src/index.js",
+  "bin": {
+    "context-scan": "src/index.js"
+  },
+  "scripts": {
+    "scan": "node src/index.js",
+    "test": "node test/test-checkpoint-staged.js"
+  },
+  "keywords": [
+    "antigravity",
+    "context",
+    "scanner",
+    "language-server"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "MIT"
+}
