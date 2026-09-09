@@ -1,20 +1,27 @@
 {
   "name": "antigravity-context-patcher",
   "version": "1.0.0",
-  "description": "Version-independent context-control scanner and patch planner for Antigravity IDE",
-  "main": "src/index.js",
+  "description": "Experimental tooling for inspecting, validating, and extending Antigravity IDE context-window behavior with provenance-first token telemetry.",
+  "main": "patcher/src/index.js",
   "bin": {
-    "context-scan": "src/index.js"
+    "context-scan": "patcher/src/index.js",
+    "verify-patch": "scripts/verify-patch.js"
   },
   "scripts": {
-    "scan": "node src/index.js",
-    "test": "node test/test-checkpoint-staged.js"
+    "scan": "node patcher/src/index.js",
+    "verify": "node scripts/verify-patch.js",
+    "test:patcher": "node patcher/tests/test-checkpoint-staged.js",
+    "test:monitor": "node token-monitor/test/run-all-tests.js",
+    "test": "npm run test:patcher && npm run test:monitor"
   },
   "keywords": [
     "antigravity",
-    "context",
-    "scanner",
-    "language-server"
+    "context-window",
+    "token-monitor",
+    "language-server",
+    "gemini",
+    "m318",
+    "reverse-engineering"
   ],
   "author": "Antigravity Engineering",
   "license": "MIT"
