@@ -1,6 +1,12 @@
-# Node dependencies
+# ====================================================
+# Antigravity Context Patcher — .gitignore
+# ====================================================
+
+# Node dependencies and package artifacts
 node_modules/
 package-lock.json
+*.vsix
+*.zip
 
 # Binary executables and staging
 *.exe
@@ -9,11 +15,18 @@ package-lock.json
 *.new
 staging/
 backups/
+recovery/
+
+# Databases and WAL journal artifacts
+*.db
+*.db-wal
+*.db-shm
 
 # Production apply logs and status files
 production-*-status.json
 production-*.log
 *.log
+logs/
 
 # Caches, coverage, and temporary files
 coverage/
@@ -21,6 +34,12 @@ tmp/
 temp/
 scratch/
 .cache/
+
+# Environment and secrets
+.env
+.env.*
+secrets*
+credentials*
 
 # OS and Editor artifacts
 .DS_Store

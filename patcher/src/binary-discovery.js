@@ -48,7 +48,7 @@ const KNOWN_HASHES = {
 
 const DEFAULT_CANDIDATE_PATHS = [
   'D:\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe',
-  'C:\\Users\\chamidu\\AppData\\Local\\Programs\\Antigravity\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe'
+  path.join(process.env.LOCALAPPDATA || 'C:\\Users\\Default\\AppData\\Local', 'Programs', 'Antigravity', 'resources', 'app', 'extensions', 'antigravity', 'bin', 'language_server_windows_x64.exe')
 ];
 
 /**
