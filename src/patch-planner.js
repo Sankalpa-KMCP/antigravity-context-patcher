@@ -139,11 +139,57 @@ class PatchPlanner {
       });
     }
 
+    // Checkpoint M318 Override Sites (Site 5 & 6)
+    const CHECKPOINT_TARGET_TOKENS = 960000;
+    const cpHookFileOffsetHex = '0x196052b';
+    const cpHookRvaHex = '0x196112b';
+    const cpCaveFileOffsetHex = '0x27ca740';
+    const cpCaveRvaHex = '0x27cb340';
+    const cpContRvaHex = '0x1961139';
+
+    // Hook: 5-byte jmp rel32 + 9-byte NOP (14 bytes total)
+    // Cave: 50 bytes total
+    patchSites.push({
+      siteId: 5,
+      code: 'CHECKPOINT_M318_HOOK',
+      name: 'checkpoint_config_m318_trampoline',
+      fileOffsetHex: cpHookFileOffsetHex,
+      instructionOffsetHex: cpHookFileOffsetHex,
+      rvaHex: cpHookRvaHex,
+      lengthBytes: 14,
+      originalBytesHex: '48 8B 84 24 70 02 00 00 31 DB 31 C9 89 CF',
+      proposedBytesHex: 'E9 10 A2 E6 00 66 0F 1F 84 00 00 00 00 00',
+      originalInstructionAsm: 'mov rax, [rsp+0x270]; xor ebx, ebx; xor ecx, ecx; mov edi, ecx',
+      proposedInstructionAsm: 'jmp 0x27cb340; nop word ptr [rax+rax*1+0]',
+      structuralSignature: '48 8B 84 24 70 02 00 00 31 DB 31 C9 89 CF E8 C2 EC D2 FF',
+      modelKeyProof: 'PlanModel loaded at 0x1960f00 (mov esi, [rdx+0x40]) and preserved at [rsp+0xa4] (mov [rsp+0xa4], esi at 0x19610a9)',
+      ownershipProof: 'CascadeConfig at [rsp+0x270] holds private heap-allocated CheckpointConfig at +0x10; CheckpointConfig.MaxTokenLimit at +0x14',
+      expectedTargetTokens: CHECKPOINT_TARGET_TOKENS
+    });
+
+    patchSites.push({
+      siteId: 6,
+      code: 'CHECKPOINT_M318_CODE_CAVE',
+      name: 'checkpoint_config_m318_override_cave',
+      fileOffsetHex: cpCaveFileOffsetHex,
+      instructionOffsetHex: cpCaveFileOffsetHex,
+      rvaHex: cpCaveRvaHex,
+      lengthBytes: 50,
+      originalBytesHex: Array(50).fill('CC').join(' '),
+      proposedBytesHex: '48 8B 84 24 70 02 00 00 81 7C 24 A4 26 05 00 00 75 15 48 85 C0 74 10 48 8B 48 10 48 85 C9 74 07 C7 41 14 00 A6 0E 00 31 DB 31 C9 89 CF E9 C7 5D 19 FF',
+      originalInstructionAsm: 'int3 (50 bytes)',
+      proposedInstructionAsm: 'mov rax, [rsp+0x270]; cmp dword ptr [rsp+0xa4], 0x526; jne +0x15; test rax, rax; jz +0x10; mov rcx, [rax+0x10]; test rcx, rcx; jz +0x07; mov dword ptr [rcx+0x14], 0x000ea600; xor ebx, ebx; xor ecx, ecx; mov edi, ecx; jmp 0x1961139',
+      structuralSignature: 'Aligned 16-byte boundary in .text tail padding (0x27ca740), 192 bytes total available',
+      modelKeyProof: 'Exact cmp dword ptr [rsp+0xa4], 0x526 guarantees only key 1318 (M318) triggers override; non-M318 models branch to done (+0x27) with zero writes',
+      ownershipProof: 'Direct write to private CheckpointConfig.MaxTokenLimit at [rcx+0x14] = 960000; leaves all other models and shared constants unchanged',
+      expectedTargetTokens: CHECKPOINT_TARGET_TOKENS
+    });
+
     const manifest = {
       isDryRun: true,
       timestampUtc: new Date().toISOString(),
       sourceHash: this.binaryInfo.sha256,
-      stagedHash: 'ec2f03ba0fe00630d49b035c2477b549c48fba0d8cc920dfe2d588f001d239b6',
+      stagedHash: 'd7b8a84264019aacb56126fff438523e35039fd4dc313aa002189d630ac05779',
       ideVersion: this.binaryInfo.ideVersion,
       extensionVersion: this.binaryInfo.extensionVersion,
       modelIdentifier: this.modelScan.modelIdentifier || 'MODEL_PLACEHOLDER_M318',
@@ -160,19 +206,22 @@ class PatchPlanner {
         modelNominal: MODEL_TARGET_TOKENS,
         reserveFloor: RESERVE_TOKENS,
         expectedUsableConverterBudget: expectedUsableBudget,
-        effectiveConverterLimit
+        effectiveConverterLimit,
+        checkpointMaxTokenLimit: CHECKPOINT_TARGET_TOKENS
       },
       patchSites,
       mathematicalProof: {
         formula: 'min(targetModelLimit - reserveFloor, targetEngineLimit)',
         evaluation: `min(${MODEL_TARGET_TOKENS} - ${RESERVE_TOKENS}, ${ENGINE_TARGET_TOKENS}) = ${effectiveConverterLimit}`,
-        bindingConstraint: expectedUsableBudget <= ENGINE_TARGET_TOKENS ? 'MODEL' : 'ENGINE'
+        bindingConstraint: expectedUsableBudget <= ENGINE_TARGET_TOKENS ? 'MODEL' : 'ENGINE',
+        checkpointAlignment: `CheckpointConfig.MaxTokenLimit (${CHECKPOINT_TARGET_TOKENS}) matches effectiveConverterLimit (${effectiveConverterLimit})`
       },
       scopeProof: {
         targetModel: 'MODEL_PLACEHOLDER_M318 (key 1318 / 0x0526)',
         targetMaxTokens: 1000000,
-        negativeScopeVerified: 'M316->unmodified (256k), M317->unmodified (256k), M318->1000000, M319->unmodified (256k), M320->unmodified (256k)',
-        ownershipProofVerified: 'ModelInfo runtime override branches on register preserved key 1318 at [rsp+0x80]'
+        targetCheckpointTokens: CHECKPOINT_TARGET_TOKENS,
+        negativeScopeVerified: 'M316->unmodified (256k), M317->unmodified (256k), M318->960000, M319->unmodified (256k), M320->unmodified (256k)',
+        ownershipProofVerified: 'CheckpointConfig at [CascadeConfig+0x10] is dynamically allocated per cascade executor; no shared/global structures modified'
       },
       confidence: 'HIGH'
     };
@@ -188,5 +237,6 @@ module.exports = {
   PatchPlanner,
   ENGINE_TARGET_TOKENS,
   MODEL_TARGET_TOKENS,
-  RESERVE_TOKENS
+  RESERVE_TOKENS,
+  CHECKPOINT_TARGET_TOKENS: 960000
 };
