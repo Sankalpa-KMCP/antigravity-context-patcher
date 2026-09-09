@@ -1,0 +1,31 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Binary executables and staging
+*.exe
+*.dll
+*.bin
+*.new
+staging/
+backups/
+
+# Production apply logs and status files
+production-*-status.json
+production-*.log
+*.log
+
+# Caches, coverage, and temporary files
+coverage/
+tmp/
+temp/
+scratch/
+.cache/
+
+# OS and Editor artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
