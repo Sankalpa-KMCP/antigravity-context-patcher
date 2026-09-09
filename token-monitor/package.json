@@ -1,0 +1,63 @@
+{
+	"name": "antigravity-token-monitor",
+	"displayName": "Antigravity Token Monitor",
+	"description": "Lightweight, zero-estimation status-bar token and trajectory monitor for Antigravity IDE",
+	"version": "0.1.0",
+	"publisher": "local",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.85.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "antigravityTokenMonitor.showDetails",
+				"title": "Antigravity Token Monitor: Show Details"
+			},
+			{
+				"command": "antigravityTokenMonitor.refresh",
+				"title": "Antigravity Token Monitor: Refresh Telemetry"
+			},
+			{
+				"command": "antigravityTokenMonitor.selectConversation",
+				"title": "Antigravity Token Monitor: Select Active Conversation"
+			}
+		],
+		"configuration": {
+			"title": "Antigravity Token Monitor",
+			"properties": {
+				"antigravityTokenMonitor.activePollingInterval": {
+					"type": "number",
+					"default": 5,
+					"minimum": 2,
+					"maximum": 60,
+					"description": "Polling interval (in seconds) while active conversation is RUNNING."
+				},
+				"antigravityTokenMonitor.idlePollingInterval": {
+					"type": "number",
+					"default": 30,
+					"minimum": 10,
+					"maximum": 300,
+					"description": "Polling interval (in seconds) while conversation is IDLE."
+				},
+				"antigravityTokenMonitor.showBackendUsage": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show backend model usage (input/cache/output tokens) in the details panel."
+				},
+				"antigravityTokenMonitor.showModelName": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show model name prefix in the status bar."
+				}
+			}
+		}
+	}
+}
